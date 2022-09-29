@@ -103,7 +103,10 @@ class AES:
     
     def print_block(self):
         for row in self.block:
-            print(row)
+            print('[', end='')
+            for byte in row:
+                print(f'{byte}'.center(4), end='')
+            print(']')
 
     def Subbytes(self):
         updated_state = [[None for i in range(4)] for j in range(4)]
@@ -124,7 +127,7 @@ class AES:
 
         for i in range(4):
             for j in range(4):
-                print(f'{self.key.master_key[i][j]} XOR {self.block[i][j]}')
+                #print(f'{self.key.master_key[i][j]} XOR {self.block[i][j]}')
                 updated_state[i][j] = self.block[i][j] ^ self.key.master_key[i][j]
         self.block = updated_state
 
@@ -133,16 +136,19 @@ def test():
     k = AESKey("keyaaaaddddddddd".encode('ascii'))
     a = AES(k, "ee495teachesusse".encode('ascii'))
     print("keyaaaaddddddddd".encode('ascii'))
-    for row in a.block: print(row)
+    a.print_block()
     a.AddRoundKey()
     print()
+    print("Pre-round XOR")
     a.print_block()
     #print(a.key.master_key)
     a.Subbytes()
     print()
+    print("SubBytes")
     a.print_block()
     a.ShiftRows()
     print()
+    print("ShiftRows")
     a.print_block()
     
 

@@ -1,4 +1,6 @@
 
+from collections import deque
+
 """ 
 AES has the main componants
     - Pre-round transformation
@@ -99,7 +101,9 @@ class AES:
             )
         return prepped_block
     
-    # Place into 2D Array?
+    def print_block(self):
+        for row in self.block:
+            print(row)
 
     def Subbytes(self):
         updated_state = [[None for i in range(4)] for j in range(4)]
@@ -109,7 +113,11 @@ class AES:
         self.block = updated_state
 
     def ShiftRows(self):
-        pass
+        # Shift block rows left by the mag of it's vertical index
+        for i in range(1,4):
+            d = deque(self.block[i])
+            d.rotate(-i)
+            self.block[i] = list(d)
     
     def AddRoundKey(self):
         updated_state = [[None for i in range(4)] for j in range(4)]
@@ -127,12 +135,15 @@ def test():
     print("keyaaaaddddddddd".encode('ascii'))
     for row in a.block: print(row)
     a.AddRoundKey()
-    for row in a.block: print(row)
+    print()
+    a.print_block()
     #print(a.key.master_key)
     a.Subbytes()
     print()
-    for row in a.block: print(row)
-
+    a.print_block()
+    a.ShiftRows()
+    print()
+    a.print_block()
     
 
 if __name__ == '__main__':

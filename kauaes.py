@@ -1,12 +1,23 @@
 
+# Part of EE495 (EE494) Study of Block Ciphers
+# Core AES implementaion
+# Hesham T. Banafa
+
 from collections import deque
+
+import numpy as np
 
 """ 
 AES has the main componants
     - Pre-round transformation
     - Key expantion
     - Round
+        - Subbytes
+        - ShiftRows
+        - MixColumns
+        - AddRoundKey   
     - Round Nr 
+        - All but MixColumns
 """
 
 class InvalidKeyLength(RuntimeError): ...
@@ -37,8 +48,9 @@ class AESKey:
                 [key[j*4+i] for j in range(4)]
             )
         self.master_key = prepped_key
+        self.key = prepped_key
         
-        
+    
     
 class AES:
 
@@ -84,10 +96,26 @@ class AES:
         0x17,0x2B,0x04,0x7E,0xBA,0x77,0xD6,0x26,0xE1,0x69,0x14,0x63,0x55,0x21,0x0C,0x7D,
     ]
 
+    # Define this as 2D array, to later use with numpy.
+    __mix_column_mat = np.array([
+        [0x02,0x03,0x01,0x01],
+        [0x01,0x02,0x03,0x01],
+        [0x01,0x01,0x02,0x03],
+        [0x03,0x01,0x01,0x02]
+    ])
+
+    __imix_column_mat = np.array([
+        [0x0E,0x0B,0x0D,0x09],
+        [0x09,0x0E,0x0B,0x0D],
+        [0x0D,0x09,0x0E,0x0B],
+        [0x0B,0x0D,0x09,0x0E]
+    ])
+
     def __init__(self, key: AESKey, data: bytes):
         if not key: raise InvalidAESKey("Key is of type None")
         self.key = key
         self.block = self.prep_block(data)
+        self.round = 0
     
     def prep_block(self, data_block: bytes):
         if len(data_block) != 16:
@@ -125,12 +153,23 @@ class AES:
     def AddRoundKey(self):
         updated_state = [[None for i in range(4)] for j in range(4)]
 
+        if self.round != 0:
+            self.key.nextkey()
         for i in range(4):
             for j in range(4):
                 #print(f'{self.key.master_key[i][j]} XOR {self.block[i][j]}')
                 updated_state[i][j] = self.block[i][j] ^ self.key.master_key[i][j]
         self.block = updated_state
 
+    def MixColumns(self):
+        for i in range(4):
+            col = list()
+            for j in range(4):
+                col.append(self.block[j][i])
+            col = np.array(col).astype(np.uint8)
+            col = self.__mix_column_mat.astype(np.uint8).dot(col.transpose())
+            for j in range(4):
+                self.block[j][i] = col[j]
 
 def test():
     k = AESKey("keyaaaaddddddddd".encode('ascii'))
@@ -149,6 +188,10 @@ def test():
     a.ShiftRows()
     print()
     print("ShiftRows")
+    a.print_block()
+    a.MixColumns()
+    print()
+    print("MixColumns")
     a.print_block()
     
 

@@ -189,13 +189,13 @@ class AES:
             d.rotate(-i)
             self.block[i] = list(d)
     
-    def AddRoundKey(self):
+    def AddRoundKey(self, key):
         updated_state = [[None for i in range(4)] for j in range(4)]
 
         for i in range(4):
             for j in range(4):
                 #print(f'{self.key.master_key[i][j]} XOR {self.block[i][j]}')
-                updated_state[i][j] = self.block[i][j] ^ self.key.key[i][j]
+                updated_state[i][j] = self.block[i][j] ^ key[i][j]
         self.block = updated_state
 
     def MixColumns(self):
@@ -211,9 +211,17 @@ class AES:
 def test():
     k = "ff000000ff00ff00000000ffff000000"
     a = AES(k, "ee495teachesusse".encode('ascii'))
-    print(a.key)
-    exit(0)
     a.print_block()
+    a.AddRoundKey(a.expanded_key[:4])
+    print('\n')
+    a.print_block()
+    print('\n')
+    a.Subbytes()
+    a.print_block()
+    print('\n')
+    a.ShiftRows()
+    a.print_block()
+    exit(0)
     #a.AddRoundKey()
     print()
     print("Pre-round XOR")

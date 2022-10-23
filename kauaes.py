@@ -24,7 +24,31 @@ class InvalidKeyLength(RuntimeError): ...
 class InvalidAESKey(RuntimeError): ...
 class IncompleteBlock(RuntimeError): ...
 
+
+class AESRound:
     
+    in_block : list[list[bytes]]
+    sub_bytes_state : list[list[bytes]]
+    shift_rows_state : list[list[bytes]]
+    mix_column_state : list[list[bytes]]
+    add_round_key_state: list[list[bytes]]
+    key_words : list[list[bytes]]
+
+    def __init__(self, in_block, key_words):
+        self.in_block = in_block
+        self.key_words = key_words
+    
+    def set_subbytes_state(self, sub_bytes_state):
+        self.sub_bytes_state = sub_bytes_state
+    
+    def set_shift_rows_state(self, shift_rows_state):
+        self.shift_rows_state = shift_rows_state
+    
+    def set_mix_column_state(self, mix_column_state):
+        self.mix_column_state = mix_column_state
+    
+    def set_add_round_key_state(self, add_round_key_state):
+        self.add_round_key_state = add_round_key_state
     
 class AES:
 
@@ -110,7 +134,7 @@ class AES:
         self.prep_key()
         self.expanded_key = self.KeyExpantion()
         self.block = self.prep_block(data)
-        self.round = 0
+        self.rounds : list[AESRound] = None
     
     def prep_block(self, data_block: bytes):
         if len(data_block) != 16:
@@ -136,9 +160,13 @@ class AES:
                 print(f'{byte}'.center(4), end='')
             print(']')
     
-    def nextkey(self):
-        for i in range(4):
-            pass
+    def print_block_square(self, block):
+        if not block: print('None'); return
+        for row in block:
+            print('[', end='')
+            for byte in row:
+                print(f'{byte}'.center(4), end='')
+            print(']')
     
     def RotWord(self, word: list[bytes]):
         word = deque(word)
@@ -211,6 +239,35 @@ class AES:
                     ^ self.block[i][2] ^ self.__gfp2[self.block[i][3]])
         self.block = n
 
+    def Encrypt(self):
+
+        self.rounds = list()
+        # Pre round
+        self.AddRoundKey(self.expanded_key[:4])
+
+        for round_ in range(1, 10): # all except last round
+            key = self.expanded_key[round_*4:(round_+1)*4]
+            round_snapshot = AESRound(self.block, key)
+            self.Subbytes()
+            round_snapshot.set_subbytes_state(self.block)
+            self.ShiftRows()
+            round_snapshot.set_shift_rows_state(self.block)
+            self.MixColumns()
+            round_snapshot.set_mix_column_state(self.block)
+            self.AddRoundKey(key)
+            round_snapshot.set_add_round_key_state(self.block)
+            self.rounds.append(round_snapshot)
+        key = self.expanded_key[40:44]
+        round_snapshot = AESRound(self.block, key)
+        self.Subbytes()
+        round_snapshot.set_subbytes_state(self.block)
+        self.ShiftRows()
+        round_snapshot.set_shift_rows_state(self.block)
+        self.AddRoundKey(key)
+        round_snapshot.set_add_round_key_state(self.block)
+        round_snapshot.set_mix_column_state(None)
+        self.rounds.append(round_snapshot)
+
 def test():
     k = "ff000000ff00ff00000000ffff000000"
     a = AES(k, "ee495teachesusse".encode('ascii'))
@@ -232,6 +289,14 @@ def test():
     a.print_block()
     exit(0)
     
+def test2():
+    k = "ff000000ff00ff00000000ffff000000"
+    a = AES(k, "ee495teachesusse".encode('ascii'))
+    a.Encrypt()
+    a.print_block()
+
+    for round_ in a.rounds:
+        print(a.print_block_square(round_.sub_bytes_state))
 
 if __name__ == '__main__':
-    exit(test())
+    exit(test2())

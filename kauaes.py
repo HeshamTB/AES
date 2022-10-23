@@ -27,7 +27,7 @@ class IncompleteBlock(RuntimeError): ...
 class AESKey:
 
     __key_sizes_bytes = {16, 24, 32}
-    def __init__(self, key: bytes):
+    def __init__(self, key):
         # 128 (16 bytes), 192 (24), 256 (32 bytes)
         l = len(key)
         if l not in self.__key_sizes_bytes:
@@ -47,8 +47,9 @@ class AESKey:
             prepped_key.append(
                 [key[j*4+i] for j in range(4)]
             )
-        self.master_key = prepped_key
-        self.key = prepped_key
+        self.master_key = key
+        self.master_key_as_block = prepped_key
+
         
     
     
@@ -111,6 +112,9 @@ class AES:
         [0x0B,0x0D,0x09,0x0E]
     ])
 
+    __rcon_aes128 = [0x01000000,0x02000000,0x04000000,0x08000000,0x10000000,
+                     0x20000000,0x40000000,0x80000000,0x1B000000,0x36000000]
+
     def __init__(self, key: AESKey, data: bytes):
         if not key: raise InvalidAESKey("Key is of type None")
         self.key = key
@@ -135,6 +139,43 @@ class AES:
             for byte in row:
                 print(f'{byte}'.center(4), end='')
             print(']')
+    
+    def nextkey(self):
+        for i in range(4):
+            pass
+    
+    def RotWord(self, word: list[bytes]):
+        word = deque(word)
+        word.rotate(-1)
+        return list(word)
+    
+    def SubWord(self, word: list[bytes]):
+        new_word = list()
+        for byte in word:
+            subbed_byte = self.__sub_bytes[byte]
+            new_word.append(subbed_byte)
+        return new_word
+
+    def KeyExpantion(self, key: AESKey):
+        # 44 Words for AES128
+        words = [None for i in range(44)]
+        
+        # Change str of hex to integers
+        new_key = list() # list of lists (Words)
+        for i in range(0, 32, 8):
+            new_key.append([int(key.master_key[i+j]+key.master_key[i+j+1], 16) for j in range(0, 8, 2)])
+        print('Master key', new_key)
+
+        for i in range(4):
+            for j in range(4):
+                words[i] = key.master_key[(4*i)+j].to_bytes(1, 'little')
+        for i in range(4,43):
+            if i % 4 != 0:
+                words[i] = words[i-1] ^ words[i-4]
+            else: 
+                t = self.SubWord(self.RotWord(words[i-1])) ^ self.__rcon_aes128[(i//4)-1]
+                words[i] = t ^ words[i-4]
+        self.key.words = words
 
     def Subbytes(self):
         updated_state = [[None for i in range(4)] for j in range(4)]
@@ -153,12 +194,10 @@ class AES:
     def AddRoundKey(self):
         updated_state = [[None for i in range(4)] for j in range(4)]
 
-        if self.round != 0:
-            self.key.nextkey()
         for i in range(4):
             for j in range(4):
                 #print(f'{self.key.master_key[i][j]} XOR {self.block[i][j]}')
-                updated_state[i][j] = self.block[i][j] ^ self.key.master_key[i][j]
+                updated_state[i][j] = self.block[i][j] ^ self.key.key[i][j]
         self.block = updated_state
 
     def MixColumns(self):
@@ -172,11 +211,10 @@ class AES:
                 self.block[j][i] = col[j]
 
 def test():
-    k = AESKey("keyaaaaddddddddd".encode('ascii'))
+    k = AESKey("ff000000ff00ff00000000ffff000000")
     a = AES(k, "ee495teachesusse".encode('ascii'))
-    print("keyaaaaddddddddd".encode('ascii'))
     a.print_block()
-    a.AddRoundKey()
+    #a.AddRoundKey()
     print()
     print("Pre-round XOR")
     a.print_block()
@@ -193,6 +231,9 @@ def test():
     print()
     print("MixColumns")
     a.print_block()
+    print(a.key.master_key)
+    a.KeyExpantion(k)
+    print(a.key.words)
     
 
 if __name__ == '__main__':

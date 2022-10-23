@@ -108,6 +108,7 @@ class AES:
         if not key: raise InvalidAESKey("Key is of type None")
         self.key = key
         self.prep_key()
+        self.expanded_key = self.KeyExpantion()
         self.block = self.prep_block(data)
         self.round = 0
     
@@ -151,26 +152,28 @@ class AES:
             new_word.append(subbed_byte)
         return new_word
 
-    def KeyExpantion(self, key: AESKey):
-        # 44 Words for AES128
-        words = [None for i in range(44)]
-        
-        # Change str of hex to integers
-        new_key = list() # list of lists (Words)
-        for i in range(0, 32, 8):
-            new_key.append([int(key.master_key[i+j]+key.master_key[i+j+1], 16) for j in range(0, 8, 2)])
-        print('Master key', new_key)
+    def KeyExpantion(self):
+        w = []
+        for word in self.key:
+            w.append(word[:])
+        i = 4
 
-        for i in range(4):
-            for j in range(4):
-                words[i] = key.master_key[(4*i)+j].to_bytes(1, 'little')
-        for i in range(4,43):
-            if i % 4 != 0:
-                words[i] = words[i-1] ^ words[i-4]
-            else: 
-                t = self.SubWord(self.RotWord(words[i-1])) ^ self.__rcon_aes128[(i//4)-1]
-                words[i] = t ^ words[i-4]
-        self.key.words = words
+        while i < 44:
+            temp = w[i-1][:]
+            if i % 4 == 0:
+                temp = self.SubWord(self.RotWord(temp))
+                temp[0] ^= self.__Rcon[(i//4)]
+            elif 4 > 6 and i % 4 == 4:
+                temp = self.SubWord(temp)
+
+            for j in range(len(temp)):
+                temp[j] ^= w[i-4][j]
+
+            w.append(temp[:])
+
+            i += 1
+        return w
+
 
     def Subbytes(self):
         updated_state = [[None for i in range(4)] for j in range(4)]

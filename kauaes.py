@@ -199,14 +199,17 @@ class AES:
         self.block = updated_state
 
     def MixColumns(self):
+        n = [word[:] for word in self.block]
         for i in range(4):
-            col = list()
-            for j in range(4):
-                col.append(self.block[j][i])
-            col = np.array(col).astype(np.uint8)
-            col = self.__mix_column_mat.astype(np.uint8).dot(col.transpose())
-            for j in range(4):
-                self.block[j][i] = col[j]
+            n[i][0] = (self.__gfp2[self.block[i][0]] ^ self.__gfp3[self.block[i][1]]
+                    ^ self.block[i][2] ^ self.block[i][3])
+            n[i][1] = (self.block[i][0] ^ self.__gfp2[self.block[i][1]]
+                    ^ self.__gfp3[self.block[i][2]] ^ self.block[i][3])
+            n[i][2] = (self.block[i][0] ^ self.block[i][1]
+                    ^ self.__gfp2[self.block[i][2]] ^ self.__gfp3[self.block[i][3]])
+            n[i][3] = (self.__gfp3[self.block[i][0]] ^ self.block[i][1]
+                    ^ self.block[i][2] ^ self.__gfp2[self.block[i][3]])
+        self.block = n
 
 def test():
     k = "ff000000ff00ff00000000ffff000000"
@@ -221,27 +224,13 @@ def test():
     print('\n')
     a.ShiftRows()
     a.print_block()
-    exit(0)
-    #a.AddRoundKey()
-    print()
-    print("Pre-round XOR")
-    a.print_block()
-    #print(a.key.master_key)
-    a.Subbytes()
-    print()
-    print("SubBytes")
-    a.print_block()
-    a.ShiftRows()
-    print()
-    print("ShiftRows")
-    a.print_block()
+    print('\n')
     a.MixColumns()
-    print()
-    print("MixColumns")
     a.print_block()
-    print(a.key.master_key)
-    a.KeyExpantion(k)
-    print(a.key.words)
+    print('\n')
+    a.AddRoundKey(a.expanded_key[4:8])
+    a.print_block()
+    exit(0)
     
 
 if __name__ == '__main__':

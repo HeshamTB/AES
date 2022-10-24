@@ -986,19 +986,52 @@ plainText.place(x=60, y=200)
 cipherText.place(x=540, y=200)
 
 
+# ====================== AES ==================
+def aes_on_encrypt_click():
+    print('[AES] encrypting')
+    print(f'Key is {aes_mainKey.get().lower()}')
+    print(aes_plainText.get(1.0, END))
+    #aes_cipher = AES(aes_mainKey.get().lower(), aes_plainText.get().encode('ascii'))
+    #aes_cipher.Encrypt()
+
+
+def aes_on_clear_click():
+    pass
+
+
+aes_mainKey = StringVar()
+
+aes_plainText = ScrolledText(tab_aes, height=5, width=40)
+aes_cipherText = ScrolledText(tab_aes, height=5, width=40)
+aes_plainText.grid(row=1, column=1)
+aes_cipherText.grid(row=1, column=1)
+aes_plainText.place(x=60, y=200)
+aes_cipherText.place(x=540, y=200)
+
+aes_Label1 = Label(tab_aes, text="Key",font="Calibri",
+                   bg="lightblue").place(x=60, y=60)
+aes_ED_Key = Entry(tab_aes, textvariable=aes_mainKey, font="Calibri",
+                   width="50").place(x=60, y=100)
+
+
+aes_Label2 = Label(tab_aes, text="The Plain Text", font="Calibri",
+                   bg="lightblue").place(x=140, y=160)
+aes_clearBtn1 = Button(tab_aes, text="Clear", width="8",
+                       font="Calibri", command=clear1).place(x=180, y=310)
+
+
+aes_Label3 = Label(tab_aes, text="The Cipher Text", font="Calibri",
+                   bg="lightblue").place(x=560, y=160)
+aes_clearBtn2 = Button(tab_aes, text="Clear", width="8", font="Calibri",
+                       command=clear2).place(x=670, y=310)
+
+aes_encBtn = Button(tab_aes, text="Encrypt", width="8", font="Calibri",
+                    command=aes_on_encrypt_click).place(x=435, y=205)
+aes_decBtn = Button(tab_aes, text="Decrypt", width="8", font="Calibri",
+                    command=Decrypt).place(x=435, y=250)
+
+
 T.mainloop()
 
 #===================================================================================================
-
-
-
-
-
-
-
-
-
-
-
-
 

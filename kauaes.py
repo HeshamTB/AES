@@ -157,7 +157,8 @@ class AES:
         self.block = self.prep_block(data)
         self.input_block = self.block
         self.pre_round = None
-        self.rounds : list[AESRound] = None
+        self.rounds_enc : list[AESRound] = None
+        self.rounds_dec : list[AESRound] = None
     
     def prep_block(self, data_block: bytes):
         if len(data_block) != 16:
@@ -272,7 +273,7 @@ class AES:
 
     def Encrypt(self):
 
-        self.rounds = list()
+        self.rounds_enc = list()
         # Pre round
         self.AddRoundKey(self.expanded_key[:4])
         self.pre_round = self.block
@@ -288,7 +289,7 @@ class AES:
             round_snapshot.set_mix_column_state(self.block)
             self.AddRoundKey(key)
             round_snapshot.set_add_round_key_state(self.block)
-            self.rounds.append(round_snapshot)
+            self.rounds_enc.append(round_snapshot)
         key = self.expanded_key[40:44]
         round_snapshot = AESRound(self.block, key)
         self.Subbytes()
@@ -298,7 +299,10 @@ class AES:
         self.AddRoundKey(key)
         round_snapshot.set_add_round_key_state(self.block)
         round_snapshot.set_mix_column_state(None)
-        self.rounds.append(round_snapshot)
+        self.rounds_enc.append(round_snapshot)
+    
+    def Decrypt(self):
+        pass 
 
 def test():
     k = "ff000000ff00ff00000000ffff000000"
@@ -325,7 +329,10 @@ def test2():
     k = "ff000000ff00ff00000000ffff000000"
     a = AES(k, "ee495teachesusse".encode('ascii'))
     a.Encrypt()
-    a.print_summary()
+    a.print_block()
+    a.Decrypt()
+    print()
+    a.print_block()
 
 if __name__ == '__main__':
     exit(test2())

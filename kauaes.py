@@ -245,6 +245,26 @@ class AES:
                 print(f'{byte}'.center(4), end='')
             print(']')
     
+    def get_state_as_hex_string(self):
+        hex_out = ''
+        for i in range(4):
+            for j in range(4):
+                t = '' + hex(self.block[j][i])[2:]
+                if self.block[j][i] < 16:
+                    t = '0' + t
+                hex_out += t                    
+        return hex_out
+    
+    def convert_block_to_hex_string(self, block):
+        hex_out = ''
+        for i in range(4):
+            for j in range(4):
+                t = '' + hex(block[j][i])[2:]
+                if self.block[j][i] < 16:
+                    t = '0' + t
+                hex_out += t
+        return hex_out
+
     def print_block_square(self, block, hex_out=False):
         if not block: print('None'); return
         for row in block:
@@ -364,7 +384,10 @@ class AES:
 
         self.rounds_enc = list()
         # Pre round
+        pre_round = AESRound(self.block, self.expanded_key[:4])
         self.AddRoundKey(self.expanded_key[:4])
+        pre_round.set_add_round_key_state(self.block)
+        self.rounds_enc.append(pre_round)
         self.pre_round = self.block
 
         for round_ in range(1, 10): # All except last round
@@ -429,6 +452,7 @@ def test():
     
 def test2():
     k = "ff000000ff00ff00000000ffff000000"
+    print(len(k))
     a = AES(k, "ee495teachesusse".encode('ascii'))
     print()
     a.print_block()
@@ -438,6 +462,7 @@ def test2():
     a.Decrypt()
     print()
     a.print_block()
+    print(a.get_state_as_hex_string().replace('0x',''))
 
 if __name__ == '__main__':
     exit(test2())

@@ -7,10 +7,11 @@
 from tkinter import  *
 from tkinter.scrolledtext import ScrolledText
 from tkinter import ttk
-from kauaes import AES
+from kauaes import AES, AESRound
+#from hesham_rsa import rsa
 
 T = Tk()
-T.geometry("940x700")
+T.geometry("1300x700")
 T.title("Encryption Algorithms")
 #T.configure()
 
@@ -987,19 +988,69 @@ cipherText.place(x=540, y=200)
 
 
 # ====================== AES ==================
+aes : AES = None
 def aes_on_encrypt_click():
     print('[AES] encrypting')
-    print(f'Key is {aes_mainKey.get().lower()}')
-    print(aes_plainText.get(1.0, END))
-    #aes_cipher = AES(aes_mainKey.get().lower(), aes_plainText.get().encode('ascii'))
-    #aes_cipher.Encrypt()
+    key = aes_mainKey.get().lower().strip()
+    if len(key) != 32:
+        print(f'Please enter key of size 128-bit as hexadecimal, got {len(key)}')
+    print(f'Key is {key}, {len(key)}')
+    text = aes_plainText.get(1.0, END).strip()
+    if len(text) != 16:
+        print(f'Please enter plaintext of size 128-bit or 16 ascii char, got {len(key)/8} chars')
+    global aes 
+    aes = AES(key, text.encode('ascii'))
+    print(f'plaintext is {text} or {aes.get_state_as_hex_string()}')
+    aes.Encrypt()
+    aes_cipherText.delete(1.0, END)
+    aes_cipherText.insert(1.0, aes.get_state_as_hex_string())
+    fill_table()
+    
+def aes_on_decrypt_click():
+    cipher = aes_cipherText.get(1.0, END).lower().strip()
+    print(len(cipher))
+    cipher_bytes = bytes.fromhex(cipher)
+    print(cipher_bytes)
+    print(len(cipher_bytes))
+    key = aes_mainKey.get().lower().strip()
+    if len(key) != 32:
+        print(f'Please enter key of size 128-bit as hexadecimal, got {len(key)}')
+    print(f'Key is {key}, {len(key)}')
+    if len(cipher) != 32:
+        print(f'Please enter ciphertext of size 128-bit or 32 hex char, got {len(cipher)} hex chars')
+    global aes
+    aes = AES(key, cipher_bytes) # We don't know if the key is the one used for enc. So make new instance.
+    aes.Decrypt()
+    print(len(bytes.fromhex(aes.get_state_as_hex_string())))
+    aes_plainText.insert(1.0, str(bytes.fromhex(aes.get_state_as_hex_string())))
 
 
-def aes_on_clear_click():
-    pass
+def aes_on_clear_text_click():
+    aes_plainText.delete(1.0, END)
 
+def aes_on_clear_cipher_click():
+    aes_cipherText.delete(1.0, END)
 
+def fill_table():
+    for entry in aes_table.get_children():
+        aes_table.delete(entry)
+    
+    global aes
+    i = 0
+    for round_  in aes.rounds_enc:
+        round_ : AESRound
+        in_state = aes.convert_block_to_hex_string(round_.in_block).upper()
+        out_state = aes.convert_block_to_hex_string(round_.add_round_key_state).upper()
+        k = aes.convert_block_to_hex_string(round_.key_words).upper()
+        aes_table.insert(parent='', index=END, values=(i, in_state, out_state, k))
+        i += 1
+
+def aes_gen_random_key():
+    pass  
+   
+        
 aes_mainKey = StringVar()
+aes_mainKey.set('EE495EE495EE495EEE495EE495EE495E')
 
 aes_plainText = ScrolledText(tab_aes, height=5, width=40)
 aes_cipherText = ScrolledText(tab_aes, height=5, width=40)
@@ -1007,6 +1058,7 @@ aes_plainText.grid(row=1, column=1)
 aes_cipherText.grid(row=1, column=1)
 aes_plainText.place(x=60, y=200)
 aes_cipherText.place(x=540, y=200)
+aes_plainText.insert(1.0, 'heshamheshamhesh')
 
 aes_Label1 = Label(tab_aes, text="Key",font="Calibri",
                    bg="lightblue").place(x=60, y=60)
@@ -1017,19 +1069,43 @@ aes_ED_Key = Entry(tab_aes, textvariable=aes_mainKey, font="Calibri",
 aes_Label2 = Label(tab_aes, text="The Plain Text", font="Calibri",
                    bg="lightblue").place(x=140, y=160)
 aes_clearBtn1 = Button(tab_aes, text="Clear", width="8",
-                       font="Calibri", command=clear1).place(x=180, y=310)
+                       font="Calibri", command=aes_on_clear_text_click).place(x=180, y=310)
 
 
 aes_Label3 = Label(tab_aes, text="The Cipher Text", font="Calibri",
                    bg="lightblue").place(x=560, y=160)
 aes_clearBtn2 = Button(tab_aes, text="Clear", width="8", font="Calibri",
-                       command=clear2).place(x=670, y=310)
+                       command=aes_on_clear_cipher_click).place(x=670, y=310)
 
 aes_encBtn = Button(tab_aes, text="Encrypt", width="8", font="Calibri",
                     command=aes_on_encrypt_click).place(x=435, y=205)
 aes_decBtn = Button(tab_aes, text="Decrypt", width="8", font="Calibri",
-                    command=Decrypt).place(x=435, y=250)
+                    command=aes_on_decrypt_click).place(x=435, y=250)
 
+
+style = ttk.Style()
+style.configure('TreeView.Text', font='TkFixedFont')
+
+aes_table = ttk.Treeview(tab_aes)
+aes_table.place(x=350, y=350)
+aes_table['columns'] = ('Round','In-state', 'Out-state', 'Key')
+aes_table.column('#0', width=0, stretch=NO)
+aes_table.column("Round", anchor=CENTER, width=50)
+aes_table.column("In-state", anchor=CENTER, width=300)
+aes_table.column("Out-state", anchor=CENTER, width=300)
+aes_table.column("Key", anchor=CENTER, width=300)
+
+aes_table.heading("#0",text="",anchor=CENTER)
+aes_table.heading("Round",text="Round",anchor=CENTER)
+aes_table.heading("In-state",text="In-state",anchor=CENTER)
+aes_table.heading("Out-state",text="Out-state",anchor=CENTER)
+aes_table.heading("Key",text="Key",anchor=CENTER)
+
+
+# ====================== RSA ==================
+
+rsa_pubkey = StringVar()
+rsa_privkey = StringVar()
 
 T.mainloop()
 

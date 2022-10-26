@@ -8,7 +8,9 @@ from tkinter import  *
 from tkinter.scrolledtext import ScrolledText
 from tkinter import ttk
 from kauaes import AES, AESRound
-#from hesham_rsa import rsa
+import rsa
+import MillerRabin as mr
+
 
 T = Tk()
 T.geometry("1300x700")
@@ -936,23 +938,6 @@ def Decrypt():
                         
                         finalPlain_Text = s.join(Plain_Char_List)
                         plainText.insert(INSERT, finalPlain_Text)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

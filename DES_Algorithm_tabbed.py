@@ -180,11 +180,11 @@ def Encrypt():
 
     initialKey = mainKey.get().lower()
 
-    if len(initialKey) < 8 or len(initialKey) > 8:
+    if len(initialKey) < 16 or len(initialKey) > 16:
         print("Please, enter 64 bits or 8 bytes as initial key ")
     else:
         byteKey = initialKey.encode('utf-8')
-        hexaKey   = str(byteKey.hex())
+        hexaKey   = str(initialKey)
         print("The hexadecimal representational for your key is: \n")
         print(hexaKey, "\n")
         tempKey   = []
@@ -558,11 +558,11 @@ def Decrypt():
 
     initialKey = mainKey.get().lower()
 
-    if len(initialKey) < 8 or len(initialKey) > 8:
+    if len(initialKey) < 16 or len(initialKey) > 16:
         print("Please, enter 64 bits or 8 bytes as initial key ")
     else:
         byteKey = initialKey.encode('utf-8')
-        hexaKey   = str(byteKey.hex())
+        hexaKey   = str(initialKey)
         tempKey   = []
         s         = ""
         for i in str(hexaKey):
@@ -1035,7 +1035,7 @@ def aes_gen_random_key():
    
         
 aes_mainKey = StringVar()
-aes_mainKey.set('EE495EE495EE495EEE495EE495EE495E')
+aes_mainKey.set('EE495EE495EE495EEE495EE495EE494E')
 
 aes_plainText = ScrolledText(tab_aes, height=5, width=40)
 aes_cipherText = ScrolledText(tab_aes, height=5, width=40)

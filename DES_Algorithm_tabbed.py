@@ -984,11 +984,23 @@ def aes_on_encrypt_click():
     if len(text) != 16:
         print(f'Please enter plaintext of size 128-bit or 16 ascii char, got {len(key)/8} chars')
     global aes 
-    aes = AES(key, text.encode('ascii'))
-    print(f'plaintext is {text} or {aes.get_state_as_hex_string()}')
-    aes.Encrypt()
+    print(len(text))
+    to_pad = 0
+    if len(text) % 16 != 0:
+        filled = len(text) % 16
+        to_pad = 16 - filled
+    text += 'z'*to_pad
+    print(text)
+    blocks = list()
     aes_cipherText.delete(1.0, END)
-    aes_cipherText.insert(1.0, aes.get_state_as_hex_string())
+
+    for i in range(0, len(text), 16):
+        blocks.append(text[i:i+16])
+        aes = AES(key, text[i:i+16].encode('ascii'))
+        print(f'plaintext is {text} or {aes.get_state_as_hex_string()}')
+        aes.Encrypt()
+        aes_cipherText.insert(1.0, aes.get_state_as_hex_string())
+
     fill_table()
     
 def aes_on_decrypt_click():
@@ -1004,10 +1016,17 @@ def aes_on_decrypt_click():
     if len(cipher) != 32:
         print(f'Please enter ciphertext of size 128-bit or 32 hex char, got {len(cipher)} hex chars')
     global aes
-    aes = AES(key, cipher_bytes) # We don't know if the key is the one used for enc. So make new instance.
-    aes.Decrypt()
-    print(len(bytes.fromhex(aes.get_state_as_hex_string())))
-    aes_plainText.insert(1.0, str(bytes.fromhex(aes.get_state_as_hex_string())))
+    aes_plainText.delete(1.0, END)
+    for i in range(0, len(cipher_bytes), 16):
+        #blocks.append(cipher_bytes[i:i+16])
+        aes = AES(key, cipher_bytes[i:i+16])
+        #print(f'plaintext is {text} or {aes.get_state_as_hex_string()}')
+        aes.Decrypt()
+        aes_plainText.insert(1.0, bytes.fromhex(aes.get_state_as_hex_string()))
+    # aes = AES(key, cipher_bytes) # We don't know if the key is the one used for enc. So make new instance.
+    # aes.Decrypt()
+    # print(len(bytes.fromhex(aes.get_state_as_hex_string())))
+    # aes_plainText.insert(1.0, str(bytes.fromhex(aes.get_state_as_hex_string())))
 
 
 def aes_on_clear_text_click():

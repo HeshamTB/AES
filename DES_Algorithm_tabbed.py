@@ -1141,6 +1141,7 @@ rsa_privkey_d = StringVar()
 rsa_keysize = StringVar()
 
 rsa_pubkey_e.set(65537)
+rsa_keyszie.set(1024)
 rsa_e_field_label = Label(tab_rsa, text="Public e",font="Calibri",
                    bg="lightblue").place(x=60, y=70)
 rsa_e_field = Entry(tab_rsa, textvariable=rsa_pubkey_e, font="Calibri",
@@ -1169,7 +1170,7 @@ rsa_plainText.grid(row=1, column=1)
 rsa_cipherText.grid(row=1, column=1)
 rsa_plainText.place(x=60, y=200)
 rsa_cipherText.place(x=600, y=200)
-rsa_plainText.insert(1.0, 'This is a test meessage')
+rsa_plainText.insert(1.0, 'This is a test meessage from EE494/EE495 about RSA')
 T.mainloop()
 
 #===================================================================================================

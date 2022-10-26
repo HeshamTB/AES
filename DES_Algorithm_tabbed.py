@@ -1106,6 +1106,8 @@ def rsa_key_gen():
     rsa_pubkey_e.set(rsa_key[E])
     rsa_pubkey_n.set(rsa_key[N])
     rsa_privkey_d.set(rsa_key[D])
+    rsa_p.set(rsa_key[P])
+    rsa_q.set(rsa_key[Q])
 
 def rsa_on_encrypt_click():
     global rsa_key
@@ -1126,11 +1128,16 @@ def rsa_on_decrypt_click():
     plain_text = ""
     rsa_print(f'cipher list: {cipher_list}')
     for cipher_word in cipher_list:
-        rsa_print('word')
         plain_text = plain_text + " " + str(rsa.decrypt(int(cipher_word, 10),rsa_key[D],rsa_key[N]))
     rsa_plainText.delete(1.0, END)
     rsa_plainText.insert(1.0, plain_text)
     rsa_print(f'Message: {plain_text}')
+
+def rsa_on_factorize_click():
+    n = rsa_pubkey_n.get()
+    factors = rsa.prime_factors(n, 10)
+    rsa_cipherText.delete(1.0, END)
+    rsa_cipherText.insert(1.0, str(factors))
 
 def rsa_print(msg, **kwargs):
     print(f'[RSA] {msg}', **kwargs)
@@ -1139,6 +1146,8 @@ rsa_pubkey_e = StringVar()
 rsa_pubkey_n = StringVar()
 rsa_privkey_d = StringVar()
 rsa_keysize = StringVar()
+rsa_p = StringVar()
+rsa_q = StringVar()
 
 rsa_pubkey_e.set(65537)
 rsa_keysize.set(1024)
@@ -1152,8 +1161,12 @@ rsa_n_field = Entry(tab_rsa, textvariable=rsa_pubkey_n, font="Calibri",
                    width="50").place(x=300, y=100)
 rsa_n_field_label = Label(tab_rsa, text="Private d",font="Calibri",
                    bg="lightblue").place(x=700, y=70)
-rsa_n_field = Entry(tab_rsa, textvariable=rsa_privkey_d, font="Calibri",
+rsa_d_field = Entry(tab_rsa, textvariable=rsa_privkey_d, font="Calibri",
                    width="50").place(x=700, y=100)
+rsa_p_field = Entry(tab_rsa, textvariable=rsa_p, font="Calibri",
+                   width="50").place(x=700, y=120)
+rsa_q_field = Entry(tab_rsa, textvariable=rsa_q, font="Calibri",
+                   width="50").place(x=700, y=140)
 rsa_genBtn = Button(tab_rsa, text="Generate Key", width="8", font="Calibri",
                     command=rsa_key_gen).place(x=50, y=150)
 rsa_keysize_label = Label(tab_rsa, text="Key size",font="Calibri",
@@ -1162,6 +1175,8 @@ rsa_keyszie_field = Entry(tab_rsa, textvariable=rsa_keysize, font="Calibri",
                    width="50").place(x=150, y=150)
 rsa_encryptBtn = Button(tab_rsa, text="Encrypt", width="8", font="Calibri",
                     command=rsa_on_encrypt_click).place(x=50, y=550)
+rsa_factorizeBtn = Button(tab_rsa, text="Prime factors", width="8", font="Calibri",
+                    command=rsa_on_factorize_click).place(x=50, y=600)
 rsa_decryptBtn = Button(tab_rsa, text="Decrypt", width="8", font="Calibri",
                     command=rsa_on_decrypt_click).place(x=620, y=550)
 rsa_plainText = ScrolledText(tab_rsa, height=20, width=70)

@@ -290,8 +290,9 @@ def prime_factors(number, base):
             factors.update({i: j})
     if num > 2:
         factors.update({int(num): 1})
-
     print(factors)
+    return factors
+
 def readKeyFile(keyName):
     key = tuple()
     with open(keysFolder+keyName, "r") as keyFile:

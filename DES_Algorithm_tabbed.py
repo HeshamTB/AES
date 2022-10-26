@@ -1089,9 +1089,87 @@ aes_table.heading("Key",text="Key",anchor=CENTER)
 
 # ====================== RSA ==================
 
-rsa_pubkey = StringVar()
-rsa_privkey = StringVar()
+rsa_key = None
+N=0
+E=1
+D=2
+P=3
+Q=4
+PHI=5
+ID=6
+def rsa_key_gen():
+    global rsa_key
+    size = int(rsa_keysize.get(), 10)
+    rsa_print(f'Key size: {size}')
+    rsa_key = rsa.generateKeys('gui', size)
+    rsa_print(f'n: {rsa_key[N]}\n d: {rsa_key[D]}')
+    rsa_pubkey_e.set(rsa_key[E])
+    rsa_pubkey_n.set(rsa_key[N])
+    rsa_privkey_d.set(rsa_key[D])
 
+def rsa_on_encrypt_click():
+    global rsa_key
+    msg = rsa_plainText.get(1.0, END)
+    msg_list = msg.split()
+    key_public = (rsa_key[N], rsa_key[E])
+    cipher = ""
+    for word in msg_list:
+        cipher = cipher + " " + str(rsa.encrypt(word, key_public))
+    #cipher = rsa.encrypt(msg, rsa_key)
+    rsa_cipherText.insert(1.0, cipher)
+    
+def rsa_on_decrypt_click():
+    global rsa_key
+    rsa_print('decrypting')
+    cipher = rsa_cipherText.get(1.0, END)
+    cipher_list = cipher.split()    
+    plain_text = ""
+    rsa_print(f'cipher list: {cipher_list}')
+    for cipher_word in cipher_list:
+        rsa_print('word')
+        plain_text = plain_text + " " + str(rsa.decrypt(int(cipher_word, 10),rsa_key[D],rsa_key[N]))
+    rsa_plainText.delete(1.0, END)
+    rsa_plainText.insert(1.0, plain_text)
+    rsa_print(f'Message: {plain_text}')
+
+def rsa_print(msg, **kwargs):
+    print(f'[RSA] {msg}', **kwargs)
+
+rsa_pubkey_e = StringVar()
+rsa_pubkey_n = StringVar()
+rsa_privkey_d = StringVar()
+rsa_keysize = StringVar()
+
+rsa_pubkey_e.set(65537)
+rsa_e_field_label = Label(tab_rsa, text="Public e",font="Calibri",
+                   bg="lightblue").place(x=60, y=70)
+rsa_e_field = Entry(tab_rsa, textvariable=rsa_pubkey_e, font="Calibri",
+                   width="50").place(x=60, y=100)
+rsa_n_field_label = Label(tab_rsa, text="Public n",font="Calibri",
+                   bg="lightblue").place(x=300, y=70)
+rsa_n_field = Entry(tab_rsa, textvariable=rsa_pubkey_n, font="Calibri",
+                   width="50").place(x=300, y=100)
+rsa_n_field_label = Label(tab_rsa, text="Private d",font="Calibri",
+                   bg="lightblue").place(x=700, y=70)
+rsa_n_field = Entry(tab_rsa, textvariable=rsa_privkey_d, font="Calibri",
+                   width="50").place(x=700, y=100)
+rsa_genBtn = Button(tab_rsa, text="Generate Key", width="8", font="Calibri",
+                    command=rsa_key_gen).place(x=50, y=150)
+rsa_keysize_label = Label(tab_rsa, text="Key size",font="Calibri",
+                   bg="lightblue").place(x=150, y=130)
+rsa_keyszie_field = Entry(tab_rsa, textvariable=rsa_keysize, font="Calibri",
+                   width="50").place(x=150, y=150)
+rsa_encryptBtn = Button(tab_rsa, text="Encrypt", width="8", font="Calibri",
+                    command=rsa_on_encrypt_click).place(x=50, y=550)
+rsa_decryptBtn = Button(tab_rsa, text="Decrypt", width="8", font="Calibri",
+                    command=rsa_on_decrypt_click).place(x=620, y=550)
+rsa_plainText = ScrolledText(tab_rsa, height=20, width=70)
+rsa_cipherText = ScrolledText(tab_rsa, height=20, width=70)
+rsa_plainText.grid(row=1, column=1)
+rsa_cipherText.grid(row=1, column=1)
+rsa_plainText.place(x=60, y=200)
+rsa_cipherText.place(x=600, y=200)
+rsa_plainText.insert(1.0, 'This is a test meessage')
 T.mainloop()
 
 #===================================================================================================

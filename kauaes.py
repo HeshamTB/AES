@@ -235,8 +235,8 @@ class AES:
     
     def prep_key(self):
         self.key = [[int(self.key[i*8+j*2:i*8+j*2+2], 16) 
-                    for j in range(4)]
                     for i in range(4)]
+                    for j in range(4)]
 
     def print_block(self):
         for row in self.block:

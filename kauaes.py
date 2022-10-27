@@ -462,7 +462,9 @@ def test2():
     a.Decrypt()
     print()
     a.print_block()
-    print(a.get_state_as_hex_string().replace('0x',''))
+    print(a.get_state_as_hex_string())
+    a.convert_block_to_hex_string(a.block)
+    a.print_block_square(a.block, hex_out=True)
 
 if __name__ == '__main__':
     exit(test2())

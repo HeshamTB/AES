@@ -973,22 +973,26 @@ cipherText.place(x=540, y=200)
 
 
 # ====================== AES ==================
+def aes_print(msg, **kwargs):
+    print(f'[AES] {msg}', **kwargs)
+
 aes : AES = None
 def aes_on_encrypt_click():
-    print('[AES] encrypting')
-    key = aes_mainKey.get().lower().strip()
+    aes_print('encrypting')
+    key = aes_mainKey.get().upper().strip()
     if len(key) != 32:
-        print(f'Please enter key of size 128-bit as hexadecimal, got {len(key)}')
-    print(f'Key is {key}, {len(key)}')
+        aes_print(f'Please enter key of size 128-bit as hexadecimal, got {len(key)}')
+        return
+    aes_print(f'Key is {key}, {len(key)}')
     text = aes_plainText.get(1.0, END).strip()
-    if len(text) != 16:
-        print(f'Please enter plaintext of size 128-bit or 16 ascii char, got {len(key)/8} chars')
+
     global aes 
     print(len(text))
     to_pad = 0
     if len(text) % 16 != 0:
         filled = len(text) % 16
         to_pad = 16 - filled
+        aes_print(f'Padding last block with {to_pad} bytes')
     text += 'z'*to_pad
     print(text)
     blocks = list()
@@ -1035,16 +1039,21 @@ def aes_on_clear_text_click():
 def aes_on_clear_cipher_click():
     aes_cipherText.delete(1.0, END)
 
-def fill_table():
-    for entry in aes_table.get_children():
+def clear_table(table: ttk.Treeview):
+    for entry in table.get_children():
         aes_table.delete(entry)
-    
+
+def fill_table():
+    clear_table(aes_table)
+
     global aes
+
     i = 0
     for round_  in aes.rounds_enc:
         round_ : AESRound
         in_state = aes.convert_block_to_hex_string(round_.in_block).upper()
         out_state = aes.convert_block_to_hex_string(round_.add_round_key_state).upper()
+        aes_print(round_.key_words)
         k = aes.convert_block_to_hex_string(round_.key_words).upper()
         aes_table.insert(parent='', index=END, values=(i, in_state, out_state, k))
         i += 1

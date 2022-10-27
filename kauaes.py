@@ -260,7 +260,7 @@ class AES:
         for i in range(4):
             for j in range(4):
                 t = '' + hex(block[j][i])[2:]
-                if self.block[j][i] < 16:
+                if block[j][i] < 16:
                     t = '0' + t
                 hex_out += t
         return hex_out
